@@ -12,7 +12,6 @@
     user:
       name: ansible
       state: present
-      password: "{{ splunk_admin_passwd }}"
       expires: 1767225600
     tags:
       - password
