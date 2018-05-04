@@ -1,0 +1,5 @@
+---
+  - import_tasks: networks.yml
+  - import_tasks: security-groups.yml
+  - import_tasks: deploy-nodes.yml
+#  - import_tasks: ansible_init.yml

@@ -1,0 +1,26 @@
+# AWS standard configurations for all instances
+
+######################################################################
+##                 YOU MUST SET THESE VARIABLES                   ####
+##     All variables until ansible_managed are yours to change    ####
+######################################################################
+
+# Set the keypair name you want to use in AWS. This key must already exist on
+# your AWS account and the variable referenced is the name.
+
+awsnd_keypair:  macbook_public
+
+# Your subnet CIDR needs to fall within this block. A new VPC will be created
+# with this subnet block.
+awsnd_vpc_cidr: 10.1.0.0/24
+
+# This subnet must be within the range of the VPC.
+# If (subnets collide) { don't; }
+awsnd_subnet_cidr: 10.1.0.0/24
+
+awsnd_update_instances: false     # Set this to true to run a 'yum -y update' on all newly provisioned hosts
+awsnd_base_image: ami-46c1b650
+awsnd_base_region: us-east-1
+awsnd_availability_zone: us-east-1a
+awsnd_vpc_name: ansible_managed  # This can be whatever you want to call it
+awsnd_guid: JYjsl8l@vuK!MScnDs2d$ywgTh42kam # This variable is used to tag instances to be removed during the purge

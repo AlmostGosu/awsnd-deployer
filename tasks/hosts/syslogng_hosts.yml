@@ -1,0 +1,37 @@
+---
+  - name: launch EC2 syslog-ng hosts
+    ec2:
+      group: ['awsnd_public', 'awsnd_private_logs']
+      instance_type: t2.micro
+      image: "{{ awsnd_base_image }}"
+      vpc_subnet_id: "{{ awsnd_host_subnet.subnet.id }}"
+      assign_public_ip: yes
+      wait: true
+      region: "{{ awsnd_base_region }}"
+      keypair: "{{ awsnd_keypair }}"
+      volumes:
+        - device_name: /dev/sda1
+          volume_type: gp2
+          volume_size: 50
+          delete_on_termination: true
+      instance_tags:
+        Name: "syslog-ng hosts"
+        inventory_tag: "syslog-ng"
+        service: "syslog-ng"
+        cleanup_guid: "{{ awsnd_guid }}"
+      exact_count: 2
+      count_tag:
+        inventory_tag: "syslog-ng"
+    register: awsnd_syslog_hosts
+
+  - debug:
+      var: awsnd_syslog_hosts.tagged_instances[0].public_ip
+      verbosity: 2
+
+  - name: update inventory with provisioned hosts
+    lineinfile:
+      dest: "{{ inventory_file }}"
+      regexp: "{{ item.public_ip }}"
+      insertafter: "^\\[{{ awsnd_syslog_hosts.tagged_instances[0].tags.inventory_tag }}\\]"
+      line: "{{ item.public_ip }}"
+    with_items: "{{ awsnd_syslog_hosts.tagged_instances }}"

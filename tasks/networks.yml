@@ -1,0 +1,86 @@
+---
+  - name: create VPC
+    ec2_vpc_net:
+      name: "{{ awsnd_vpc_name }}"
+      cidr_block: "{{ awsnd_vpc_cidr }}"
+      region: "{{ awsnd_base_region }}"
+      tags:
+        awsnd_guid: "{{ awsnd_guid }}"
+    register: awsnd_vpc
+  - debug:
+      var: awsnd_vpc
+      verbosity: 2
+
+  - name: Set VPC ID in variable
+    set_fact:
+      awsnd_vpc_id: "{{ awsnd_vpc.vpc.id }}"
+
+  - name: create subnet
+    ec2_vpc_subnet:
+      state: present
+      vpc_id: "{{ awsnd_vpc_id }}"
+      region: "{{ awsnd_base_region }}"
+      az: "{{ awsnd_availability_zone }}"
+      cidr: "{{ awsnd_subnet_cidr }}"
+      tags:
+        Name: Host Subnet
+        awsnd_guid: "{{ awsnd_guid }}"
+    register: awsnd_host_subnet
+  - debug:
+      var: awsnd_host_subnet
+      verbosity: 2
+
+  - name: Set subnet ID in variable
+    set_fact:
+      subnet_id: "{{ awsnd_host_subnet.subnet.id}}"
+      availability_zone: "{{ awsnd_host_subnet.subnet.availability_zone }}"
+
+  - name: create IGW for VPC
+    ec2_vpc_igw:
+      vpc_id: "{{ awsnd_vpc_id }}"
+      region: "{{ awsnd_base_region }}"
+      state: "present"
+      tags:
+        awsnd_guid: "{{ awsnd_guid }}"
+    register: awsnd_igw
+
+  - debug:
+      var: awsnd_igw
+      verbosity: 2
+
+  - name: Set Internet Gateway ID in variable
+    set_fact:
+      igw_id: "{{ awsnd_igw.gateway_id }}"
+
+  - name: set up public subnet route table
+    ec2_vpc_route_table:
+      vpc_id: "{{ awsnd_vpc_id }}"
+      region: "{{ awsnd_base_region }}"
+      tags:
+        Name: "Public"
+        awsnd_guid: "{{ awsnd_guid }}"
+      subnets:
+        - "{{ awsnd_host_subnet.subnet.id }}"
+      routes:
+        - dest: "0.0.0.0/0"
+          gateway_id: "{{ awsnd_igw.gateway_id }}"
+    register: awsnd_route_table
+  - debug:
+      var: awsnd_route_table
+      verbosity: 2
+
+  - name:
+    set_fact:
+      awsnd_router_id: "{{ awsnd_route_table.route_table.id }}"
+
+  # - name: update aws variables
+  #   lineinfile:
+  #     dest: "roles/awsnd-deployer/vars/awsnd-vars.yml"
+  #     regexp: "{{ item.regexp }}"
+  #     line: "{{ item.line }}"
+  #   with_items:
+  #     - { regexp: '^awsnd_vpc_id:', line: "awsnd_vpc_id: {{ awsnd_vpc_id }}"}
+  #     - { regexp: '^awsnd_subnet_id:', line: "awsnd_subnet_id: {{ awsnd_subnet_id }}"}
+  #     - { regexp: '^awsnd_availability_zone:', line: "awsnd_availability_zone: {{ awsnd_availability_zone }}"}
+  #     - { regexp: '^awsnd_router_id:', line: "awsnd_router_id: {{ awsnd_route_table }}"}
+  #     - { regexp: '^awsnd_updated:', line: "awsnd_updated: {{ ansible_date_time.iso8601 }}"}

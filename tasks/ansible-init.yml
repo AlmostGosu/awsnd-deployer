@@ -1,0 +1,45 @@
+---
+  - name: ensure packages are installed
+    yum:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - "libselinux-python"
+      - "policycoreutils"
+    become: True
+
+  - name: create ansible user
+    user:
+      name: ansible
+      state: present
+      password: "{{ splunk_admin_passwd }}"
+      expires: 1767225600
+    tags:
+      - password
+
+  - name: copy authorized key
+    authorized_key:
+      user: ansible
+      # change to ansible key before putting in production
+      key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+      path: /home/ansible/.ssh/authorized_keys
+
+  - name: add sudoers.d file for ansible (1 of 2)
+    template:
+      src: ./templates/ansible.j2
+      dest: /etc/sudoers.d/ansible
+      owner: root
+      group: root
+      mode: 0600
+      validate: 'visudo -cf %s'
+
+  - name: restrict ansible user to key-based auth via SSH only
+    blockinfile:
+      dest: /etc/ssh/sshd_config
+      marker: "# {mark} ANSIBLE USER RESTRICTIONS"
+      insertafter: EOF
+      content: |
+        Match User ansible
+          PasswordAuthentication no
+    notify:
+      - restart sshd

@@ -1,0 +1,12 @@
+---
+  # - name: print something to shell
+  #   debug:
+  #     var: splunk_private
+
+  - debug:
+      var: security_group_list
+      verbosity: 2
+
+  - include: "{{ item }}"
+    with_fileglob:
+      - roles/awsnd-deployer/tasks/security-groups/*.yml

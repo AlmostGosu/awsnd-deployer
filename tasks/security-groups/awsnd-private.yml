@@ -1,0 +1,30 @@
+---
+  - name: allow syslog internal
+    ec2_group:
+      name: awsnd_private_logs
+      description: Allow syslog, ftp-s, and splunk
+      vpc_id: "{{ awsnd_vpc_id }}"
+      region: "{{ awsnd_base_region }}"
+      rules:
+        - proto: tcp
+          from_port: 514
+          to_port: 514
+          cidr_ip: "{{ awsnd_subnet_cidr }}"
+        - proto: tcp
+          from_port: 10514
+          to_port: 10514
+          cidr_ip: "{{ awsnd_subnet_cidr }}"
+        - proto: tcp
+          from_port: 20
+          to_port: 21
+          cidr_ip: "{{ awsnd_subnet_cidr }}"
+        - proto: tcp
+          from_port: 9997
+          to_port: 9997
+          cidr_ip: "{{ awsnd_subnet_cidr }}"
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: "{{ awsnd_subnet_cidr }}"
+      tags:
+        awsnd_guid: "{{ awsnd_guid }}"
