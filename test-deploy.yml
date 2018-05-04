@@ -11,7 +11,7 @@
     - name: Making a copy of group_vars/splunk_common.yml, you know... because reasons.
       copy:
         src: "{{ inventory_file }}"
-        dest: roles/awsnd-purge/templates/awsnd-inventory.j2
+        dest: ../awsnd-purge/templates/awsnd-inventory.j2
       when: awsnd_circular
 
     - name: Making a copy of group_vars/splunk_common.yml, you know... because reasons.
