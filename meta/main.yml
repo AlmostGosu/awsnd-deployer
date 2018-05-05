@@ -6,7 +6,7 @@ galaxy_info:
   license: license (Apache)
   min_ansible_version: 2.3.2
   platforms:
-  - name: N/A
+  - name: Amazon
   categories:
   - aws
   - cloud
